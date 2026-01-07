@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        /* Default (Light) Theme */
+        --color-parchment: #F9F7F1;
+        --color-ink: #2C3E50;
+        --color-pencil: #5D6D7E;
+        --color-shelf: #8D6E63;
+        --color-forest: #556B2F;
+        --color-rust: #A0522D;
+    }
+
+    [data-theme="dark"] {
+        --color-parchment: #18181b;
+        /* Zinc 900 */
+        --color-ink: #e4e4e7;
+        /* Zinc 200 */
+        --color-pencil: #a1a1aa;
+        /* Zinc 400 */
+        --color-shelf: #a1887f;
+        /* Lighter Brown */
+        --color-forest: #86a34c;
+        /* Lighter Green */
+        --color-rust: #cd7f58;
+        /* Lighter Rust */
+    }
+
+    [data-theme="sepia"] {
+        --color-parchment: #f1e7d0;
+        /* Warm Beige */
+        --color-ink: #433422;
+        /* Dark Brown */
+        --color-pencil: #7d6c5b;
+        /* Warm Gray */
+        --color-shelf: #8D6E63;
+        /* Same Shelf */
+        --color-forest: #556B2F;
+        /* Same Forest */
+        --color-rust: #A0522D;
+        /* Same Rust */
+    }
+
+    body {
+        /* Use variables with fallbacks */
+        background-color: var(--color-parchment);
+        color: var(--color-ink);
+        @apply antialiased transition-colors duration-300;
+    }
+}

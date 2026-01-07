@@ -1,0 +1,61 @@
+import { dbAdmin } from '../../utils/firebase'
+
+export default defineEventHandler(async (event) => {
+    const user = event.context.user
+
+    // Verify Super Role from Database (Token might be stale)
+    const db = dbAdmin
+    const callerSnap = await db.collection('users').doc(user.uid).get()
+
+    if (!callerSnap.exists || callerSnap.data()?.role !== 'super') {
+        throw createError({ statusCode: 403, statusMessage: 'Forbidden: Super access required' })
+    }
+
+    const { name } = await readBody(event)
+
+    const branch = 'AI'
+
+    try {
+        const result = await db.runTransaction(async (t) => {
+            // 1. Generate Card ID
+            const year = new Date().getFullYear().toString().slice(-2)
+            const counterRef = db.collection('counters').doc(`${year}-${branch}`)
+            const counterSnap = await t.get(counterRef)
+
+            let currentCount = 0
+            if (counterSnap.exists) {
+                currentCount = counterSnap.data()?.count || 0
+            }
+
+            const newCount = currentCount + 1
+            const paddedCount = newCount.toString().padStart(4, '0')
+            const newCardId = `ZL-${year}-${branch}-${paddedCount}`
+
+            // 2. Create AI User
+            const aiId = 'ai-' + Date.now()
+            const aiRef = db.collection('users').doc(aiId)
+
+            t.set(counterRef, { count: newCount }, { merge: true })
+
+            t.set(aiRef, {
+                displayName: name || 'Zettler AI',
+                role: 'super',
+                isAI: true,
+                email: 'ai@zettler.lore',
+                photoURL: 'https://api.dicebear.com/7.x/bottts/svg?seed=' + aiId,
+                createdAt: new Date().toISOString(),
+                libraryCardNumber: newCardId,
+                branch: branch,
+                status: 'approved'
+            })
+
+            return { aiId, newCardId }
+        })
+
+        return { success: true, ...result }
+
+    } catch (e: any) {
+        console.error("Spawn AI failed", e)
+        throw createError({ statusCode: 500, statusMessage: e.message })
+    }
+})
