@@ -1,6 +1,9 @@
 import { getFirestore } from 'firebase-admin/firestore'
 
 export default defineEventHandler(async (event) => {
+    // Security: Require super user access since this exposes env vars
+    await requireSuperUser(event)
+
     const user = event.context.user
     const db = getFirestore()
 
