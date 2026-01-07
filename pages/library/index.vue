@@ -92,7 +92,7 @@ const standardShelves = computed(() => filteredShelves.value.filter(s => s.slug 
     <!-- The Stacks -->
     <div class="space-y-12">
       <div v-if="pending" class="py-24">
-         <LoadingSpinner text="Consulting the Archives..." />
+         <UiLoadingSpinner text="Consulting the Archives..." />
       </div>
 
       <template v-else>
@@ -102,7 +102,7 @@ const standardShelves = computed(() => filteredShelves.value.filter(s => s.slug 
             :category="shelf.category" 
             :description="shelf.description"
         >
-            <BookItem 
+        <LibraryBookItem
             v-for="book in shelf.books" 
             :key="book.slug" 
             v-bind="book"

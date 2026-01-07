@@ -22,7 +22,7 @@ const { user, signOut } = useAuth()
             </template>
             
             <!-- Notification Bell -->
-            <NotificationBell />
+            <UiNotificationBell />
             <div class="h-4 w-px bg-stone-300"></div>
             
             <NuxtLink to="/library" class="text-sm font-medium text-pencil hover:text-ink transition-colors">
@@ -48,7 +48,7 @@ const { user, signOut } = useAuth()
         
         <!-- Theme Toggle (Always visible) -->
         <div class="h-4 w-px bg-stone-300 mx-2"></div>
-        <ThemeToggle />
+        <UiThemeToggle />
       </nav>
     </div>
   </header>

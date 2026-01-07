@@ -17,6 +17,6 @@ const { user, signOut } = useAuth()
         </p>
       </footer>
     </div>
-    <NotificationToast />
+    <UiNotificationToast />
   </div>
 </template>
