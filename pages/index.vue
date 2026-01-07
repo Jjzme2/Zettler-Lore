@@ -89,7 +89,7 @@ const filteredShelves = computed(() => {
         :category="shelf.category" 
         :description="shelf.description"
       >
-        <BookItem 
+        <LibraryBookItem
           v-for="book in shelf.books" 
           :key="book.slug" 
           v-bind="book"

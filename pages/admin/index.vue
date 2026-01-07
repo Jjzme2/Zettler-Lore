@@ -327,7 +327,7 @@ onMounted(() => {
             <span class="text-xs bg-shelf text-white px-2 py-0.5 rounded-full font-sans">{{ pendingUsers.length }}</span>
         </h2>
         
-        <div v-if="loading" class="py-12"><LoadingSpinner text="Checking credentials..." /></div>
+        <div v-if="loading" class="py-12"><UiLoadingSpinner text="Checking credentials..." /></div>
         <div v-else-if="pendingUsers.length === 0" class="p-8 bg-stone-50 border border-stone-100 rounded-sm text-center text-stone-400 text-sm">
             No pending applications.
         </div>
@@ -425,7 +425,7 @@ onMounted(() => {
                 </div>
             </div>
             
-            <div v-if="loading" class="py-12"><LoadingSpinner text="Organizing shelves..." /></div>
+            <div v-if="loading" class="py-12"><UiLoadingSpinner text="Organizing shelves..." /></div>
 
             <div class="bg-white border border-stone-200 rounded-sm">
                 <ul class="divide-y divide-stone-100">
@@ -461,7 +461,7 @@ onMounted(() => {
             </div>
         </div>
             
-            <div v-if="loading" class="py-12"><LoadingSpinner text="Gatthering tomes..." /></div>
+            <div v-if="loading" class="py-12"><UiLoadingSpinner text="Gatthering tomes..." /></div>
 
             <div class="bg-white border border-stone-200 rounded-sm h-96 overflow-y-auto">
                 <!-- Filter Bar -->
