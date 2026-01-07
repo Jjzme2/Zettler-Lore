@@ -21,9 +21,12 @@ export default defineNuxtConfig({
         firebaseAdminClientEmail: '',
         firebaseAdminPrivateKey: '',
         geminiApiKey: '',
+        stripeSecretKey: '',
+        stripeWebhookSecret: '',
 
         // Public keys (client-side)
         public: {
+            stripePublishableKey: '',
             firebaseApiKey: '',
             firebaseAuthDomain: '',
             firebaseProjectId: '',
