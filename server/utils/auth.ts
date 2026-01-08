@@ -1,6 +1,17 @@
 import { dbAdmin } from './firebase'
 import { H3Event } from 'h3'
 
+/**
+ * Middleware utility to enforce super-user (admin) privileges on an API route.
+ *
+ * This function checks if the user is authenticated and if their role in the `users` Firestore collection is 'super'.
+ * It relies on `event.context.user` being populated by the user-context middleware.
+ *
+ * @param {H3Event} event - The H3 event object representing the request.
+ * @returns {Promise<any>} A promise that resolves to the user object if authorized.
+ * @throws {Error} Throws a 401 error if the user is not authenticated.
+ * @throws {Error} Throws a 403 error if the user does not have 'super' role.
+ */
 export const requireSuperUser = async (event: H3Event) => {
     const user = event.context.user
 
