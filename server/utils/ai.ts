@@ -1,9 +1,16 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 /**
- * Generates text using Gemini with a waterfall strategy for cost optimization.
- * 1. Tries 'gemini-1.5-flash' (Fast, Cheap)
- * 2. Falls back to 'gemini-1.5-pro' (Higher Quality)
+ * Generates text using Google Gemini AI models with a fallback strategy.
+ *
+ * This function attempts to generate content using 'gemini-2.5-flash' first.
+ * If that fails, it falls back to 'gemini-2.5-flash-lite'.
+ * It also handles error parsing for rate limits and configuration issues.
+ *
+ * @param {string} prompt - The text prompt to send to the AI model.
+ * @returns {Promise<{ text: string, usage: any }>} A promise that resolves to an object containing the generated text and usage metadata.
+ * @throws {Error} Throws a 500 error if the API key is missing.
+ * @throws {Error} Throws a 503 error if all models fail, with a user-friendly message for rate limits or configuration errors.
  */
 export const generateWithGemini = async (prompt: string): Promise<{ text: string, usage: any }> => {
     const config = useRuntimeConfig()

@@ -1,8 +1,24 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as firebaseSignOut, onIdTokenChanged, type User as FirebaseUser } from 'firebase/auth'
 import { APP_CONFIG } from '~/config/app.config'
 
+/**
+ * Composable for managing user authentication state and actions.
+ *
+ * This composable handles:
+ * - Current user state (reactive).
+ * - Sign-in with email and password.
+ * - Registration (creating Auth user and Firestore user profile).
+ * - Session management via server-side session cookies.
+ * - Sign-out.
+ *
+ * @returns {object} An object containing the user state and authentication methods.
+ */
 export const useAuth = () => {
     const { $auth } = useNuxtApp()
+
+    /**
+     * Reactive state holding the current Firebase user or null.
+     */
     const user = useState<FirebaseUser | null>('user', () => null)
 
     // Initialize user state from server if available (during SSR)
@@ -22,6 +38,11 @@ export const useAuth = () => {
         refreshUser()
     }
 
+    /**
+     * Sets the session cookie on the server.
+     *
+     * @param {FirebaseUser} user - The authenticated Firebase user.
+     */
     const setSessionCookie = async (user: FirebaseUser) => {
         const idToken = await user.getIdToken()
         // Send token to server to create session cookie
@@ -33,6 +54,12 @@ export const useAuth = () => {
         window.location.reload()
     }
 
+    /**
+     * Signs in a user with email and password.
+     *
+     * @param {string} email - The user's email.
+     * @param {string} pass - The user's password.
+     */
     const signInWithEmail = async (email: string, pass: string) => {
         try {
             const result = await signInWithEmailAndPassword($auth, email, pass)
@@ -43,6 +70,13 @@ export const useAuth = () => {
         }
     }
 
+    /**
+     * Registers a new user with email and password.
+     * Also creates a corresponding user document in Firestore with default values.
+     *
+     * @param {string} email - The user's email.
+     * @param {string} pass - The user's password.
+     */
     const registerWithEmail = async (email: string, pass: string) => {
         try {
             const { $db } = useNuxtApp()
@@ -69,6 +103,10 @@ export const useAuth = () => {
         }
     }
 
+    /**
+     * Signs out the current user.
+     * Clears the session cookie on the server and redirects to the logout page.
+     */
     const signOut = async () => {
         try {
             await firebaseSignOut($auth)

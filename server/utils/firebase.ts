@@ -2,6 +2,14 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
 
+/**
+ * Initializes and exports Firebase Admin SDK instances.
+ *
+ * This module handles the initialization of the Firebase Admin app using environment variables.
+ * It ensures that the app is initialized only once (singleton pattern).
+ * It also parses the private key to handle common formatting issues (escaped newlines, wrapping quotes).
+ */
+
 const config = useRuntimeConfig()
 
 let privateKey = config.firebaseAdminPrivateKey
@@ -37,11 +45,21 @@ if (!firebaseAdminConfig.projectId || !firebaseAdminConfig.clientEmail || !fireb
 }
 
 // Initialize Firebase Admin only once
+/**
+ * The initialized Firebase Admin application instance.
+ */
 export const adminApp = getApps().length === 0
     ? initializeApp({
         credential: cert(firebaseAdminConfig)
     })
     : getApps()[0]
 
+/**
+ * The Firebase Auth Admin service instance.
+ */
 export const authAdmin = getAuth(adminApp)
+
+/**
+ * The Firebase Firestore Admin service instance.
+ */
 export const dbAdmin = getFirestore(adminApp)

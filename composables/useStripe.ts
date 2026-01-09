@@ -1,5 +1,13 @@
 import { loadStripe } from '@stripe/stripe-js'
 
+/**
+ * Composable for Client-Side Stripe integration.
+ *
+ * This composable handles loading the Stripe.js library and initiating the checkout process.
+ * It interacts with the server-side API to create a Checkout Session.
+ *
+ * @returns {object} An object containing the `redirectToCheckout` method.
+ */
 export const useStripe = () => {
     const config = useRuntimeConfig()
 
@@ -8,6 +16,11 @@ export const useStripe = () => {
         ? loadStripe(config.public.stripePublishableKey)
         : null
 
+    /**
+     * Redirects the user to the Stripe Checkout page for a specific subscription plan.
+     *
+     * @param {string} priceId - The Stripe Price ID of the product/subscription.
+     */
     const redirectToCheckout = async (priceId: string) => {
         if (!stripePromise) {
             console.error('Stripe is not configured')
