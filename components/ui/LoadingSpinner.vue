@@ -11,7 +11,17 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * LoadingSpinner Component
+ *
+ * Displays a centered loading indicator with a spinning animation.
+ * Can optionally display a text label below the spinner.
+ *
+ * Usage:
+ * <UiLoadingSpinner text="Loading Data..." />
+ */
 defineProps<{
+  /** Optional text to display below the spinner */
   text?: string
 }>()
 </script>

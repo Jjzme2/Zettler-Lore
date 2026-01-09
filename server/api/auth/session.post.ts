@@ -1,6 +1,17 @@
 import { authAdmin } from '~/server/utils/firebase'
 import { APP_CONFIG } from '~/config/app.config'
 
+/**
+ * POST /api/auth/session
+ *
+ * Session Login Endpoint.
+ *
+ * This endpoint is responsible for "logging in" the user on the server side.
+ * It expects a Firebase ID Token (obtained on the client), verifies it, and
+ * creates a secure, HTTP-only Session Cookie.
+ *
+ * This cookie is then used for subsequent server-side rendering (SSR) and API requests.
+ */
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)
     const idToken = body.idToken

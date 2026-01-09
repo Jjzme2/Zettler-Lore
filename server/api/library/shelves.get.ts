@@ -1,10 +1,21 @@
 import { getFirestore } from 'firebase-admin/firestore'
 
+/**
+ * GET /api/library/shelves
+ *
+ * Fetches the Library structure: Shelves and their stories.
+ *
+ * Use Cases:
+ * - Public: View all public shelves and stories.
+ * - Member: View all shelves (including member-only) and stories.
+ *
+ * This endpoint performs filtering based on the user's authentication state.
+ */
 export default defineEventHandler(async (event) => {
     const db = getFirestore()
 
     try {
-        // 1. Fetch all shelves
+        // 1. Fetch all shelves from Firestore, ordered by their display order
         const shelvesSnap = await db.collection('shelves').orderBy('order').get()
         const shelves = shelvesSnap.docs.map(doc => {
             const data = doc.data()
