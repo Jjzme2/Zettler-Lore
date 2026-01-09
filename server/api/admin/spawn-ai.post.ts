@@ -1,16 +1,10 @@
 import { dbAdmin } from '../../utils/firebase'
+import { requireSuperUser } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-    const user = event.context.user
+    await requireSuperUser(event)
 
-    // Verify Super Role from Database (Token might be stale)
     const db = dbAdmin
-    const callerSnap = await db.collection('users').doc(user.uid).get()
-
-    if (!callerSnap.exists || callerSnap.data()?.role !== 'super') {
-        throw createError({ statusCode: 403, statusMessage: 'Forbidden: Super access required' })
-    }
-
     const { name } = await readBody(event)
 
     const branch = 'Z-AI'

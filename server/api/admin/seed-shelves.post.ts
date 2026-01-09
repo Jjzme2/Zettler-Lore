@@ -1,11 +1,9 @@
 import { getFirestore } from 'firebase-admin/firestore'
+import { requireAdminUser } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-    // Admin check logic (Disabled for seeding bootstrap)
-    const user = event.context.user
-    // if (!user || user.role !== 'admin') {
-    //     // throw createError({ statusCode: 403, statusMessage: 'Unauthorized' })
-    // }
+    // Admin check logic
+    await requireAdminUser(event)
 
     const db = getFirestore()
     const batch = db.batch()

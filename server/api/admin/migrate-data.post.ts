@@ -1,16 +1,9 @@
 import { dbAdmin } from '~/server/utils/firebase'
+import { requireAdminUser } from '~/server/utils/auth'
 
 export default defineEventHandler(async (event) => {
-    // Admin check (simplified for this migration tool, but ideally usually restricted)
-    // For safety, let's just ensure they are logged in. Real admin check usually better.
-    const user = event.context.user
-    if (!user) {
-        throw createError({ statusCode: 401, statusMessage: 'Unauthorized' })
-    }
-
-    // In a real scenario, check for admin role here.
-    // const adminDoc = await dbAdmin.collection('users').doc(user.uid).get()
-    // if (adminDoc.data()?.role !== 'admin') ...
+    // Admin check
+    await requireAdminUser(event)
 
     const usersRef = dbAdmin.collection('users')
     const snapshot = await usersRef.get()
