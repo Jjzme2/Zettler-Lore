@@ -2,23 +2,33 @@
 const { user } = useAuth()
 
 // Data fetching
-const { data: libraryData, pending, error } = await useFetch('/api/library/shelves')
+const { data: libraryData, pending, error } = await useFetch('/api/library/shelves', { lazy: true })
 
 const shelves = computed(() => libraryData.value?.shelves || [])
 
 const searchQuery = ref('')
+const debouncedSearchQuery = ref('')
 const selectedSort = ref('newest')
+
+let debounceTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(searchQuery, (newVal) => {
+  if (debounceTimer) clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    debouncedSearchQuery.value = newVal
+  }, 300)
+})
 
 // Computed simplified filter
 const filteredShelves = computed(() => {
     let result = shelves.value
 
-    if (searchQuery.value) {
+    if (debouncedSearchQuery.value) {
         result = result.map(shelf => ({
             ...shelf,
             books: shelf.books.filter((book: any) => 
-                book.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-                book.author.toLowerCase().includes(searchQuery.value.toLowerCase())
+                book.title.toLowerCase().includes(debouncedSearchQuery.value.toLowerCase()) ||
+                book.author.toLowerCase().includes(debouncedSearchQuery.value.toLowerCase())
             )
         })).filter(shelf => shelf.books.length > 0)
     }
