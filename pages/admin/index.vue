@@ -139,19 +139,31 @@ const fetchUsers = async () => {
         const booksRef = await getDocs(query(collection($db, 'stories'), limit(50)))
         books.value = booksRef.docs.map(d => ({id: d.id, ...d.data()}))
         
-        // Fetch AI Stats
+        // Fetch AI Stats (Current Cycle)
         if (user.value?.role === 'super') {
-            const statsSnap = await getDocs(collection($db, 'system'))
-            const usageDoc = statsSnap.docs.find(d => d.id === 'ai_usage')
+            const statsSnap = await getDocs(collection($db, 'system', 'ai_usage', 'cycles'))
+            const currentCycle = statsSnap.docs.find(d => d.id === 'current')
             
             // Set stats or defaults
-            aiStats.value = usageDoc ? usageDoc.data() : { totalRequests: 0, totalTokens: 0 }
+            aiStats.value = currentCycle ? currentCycle.data() : { totalRequests: 0, totalTokens: 0 }
         }
 
     } catch (e) {
         console.error("Error fetching admin data", e)
     } finally {
         loading.value = false
+    }
+}
+
+const refreshStats = async () => {
+    if (!confirm("Are you sure you want to refresh the current cycle? This will archive current usage and reset counters to zero.")) return
+    
+    try {
+        await $fetch('/api/admin/refresh-ai-stats', { method: 'POST' })
+        await fetchUsers()
+        alert("Cycle refreshed and archived.")
+    } catch (e: any) {
+        alert("Refresh failed: " + (e.statusMessage || e.message))
     }
 }
 
@@ -256,13 +268,14 @@ const openEditAI = async (u: any) => {
             params: { targetUserId: u.id }
         })
         if (res.profile) {
+            editAIForm.value.displayName = res.displayName || editAIForm.value.displayName
             editAIForm.value.systemPrompt = res.profile.systemPrompt || ''
             editAIForm.value.styleGuide = res.profile.styleGuide || ''
         }
-    } catch (e) {
+    } catch (e: any) {
         console.error("Failed to fetch detailed profile", e)
-        editAIForm.value.systemPrompt = ''
-        editAIForm.value.styleGuide = ''
+        alert(`Failed to load profile: ${e.message || 'Unknown error'}`)
+        showEditAI.value = false
     }
 }
 
@@ -360,6 +373,9 @@ onMounted(() => {
              <span>EST. COST:</span>
              <!-- Assuming mostly Flash usage @ $0.35 per 1M tokens -->
              <span class="text-forest font-bold text-sm">${{ ((aiStats.totalTokens || 0) / 1000000 * 0.35).toFixed(4) }}</span>
+             <button @click="refreshStats" class="ml-4 p-1 hover:text-white transition-colors" title="Refresh Cycle">
+                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+             </button>
         </div>
     </div>
 

@@ -1,47 +1,113 @@
 <script setup lang="ts">
-defineProps<{
+import { THEME_CLASSIC, type CardTheme } from '~/config/themes'
+import { libraryQuotes } from '~/config/quotes'
+
+const props = withDefaults(defineProps<{
   user: {
     uid: string
     email?: string | null
     displayName?: string | null
     createdAt?: string | number
+    memberId?: string | null
+    libraryCardNumber?: string | null
   }
-}>()
+  theme?: CardTheme
+}>(), {
+  theme: () => THEME_CLASSIC
+})
+
+const now = ref(new Date())
+
+onMounted(() => {
+  const timer = setInterval(() => {
+    now.value = new Date()
+  }, 60000)
+  
+  onUnmounted(() => {
+    clearInterval(timer)
+  })
+})
+
+const timeOfDay = computed(() => {
+  const hour = now.value.getHours()
+  if (hour < 5) return 'evening'
+  if (hour < 12) return 'morning'
+  if (hour < 18) return 'afternoon'
+  return 'evening'
+})
+
+const dailyQuote = computed(() => {
+  const dateStr = now.value.toDateString()
+  let hash = 0
+  for (let i = 0; i < dateStr.length; i++) {
+    hash = dateStr.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const index = Math.abs(hash) % libraryQuotes.length
+  return libraryQuotes[index]
+})
 
 const formattedDate = computed(() => {
-  return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  return now.value.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 })
 </script>
 
 <template>
-  <div class="max-w-md mx-auto bg-parchment border-2 border-stone-300 p-8 shadow-sm relative overflow-hidden">
-    <!-- Decorative border lines -->
-    <div class="absolute top-2 left-2 right-2 bottom-2 border border-stone-200 pointer-events-none"></div>
+  <div :class="['max-w-md mx-auto p-8 relative overflow-hidden transition-all duration-300 print:shadow-none print:border-2 print:border-black print:bg-white', theme.classes.wrapper, theme.classes.border, theme.name === 'Classic' ? 'border-2' : 'border']">
+    
+    <!-- Decorative border lines for Classic Theme -->
+    <div v-if="theme.name === 'Classic'" class="absolute top-2 left-2 right-2 bottom-2 border border-stone-200 pointer-events-none print:hidden"></div>
 
     <div class="relative z-10 text-center space-y-6">
-      <div class="uppercase tracking-[0.2em] text-xs font-bold text-stone-400">
+      
+      <!-- Header / Logo Area -->
+      <div :class="['uppercase tracking-[0.2em] text-xs font-bold transition-colors', theme.classes.accent]">
         Zettler Lore Digital Library
       </div>
 
-      <div class="py-4 border-b border-stone-200">
-        <h3 class="font-serif text-2xl text-ink">
-          {{ user.displayName || 'Reader' }}
-        </h3>
-        <p class="text-sm text-pencil mt-1 font-mono">
-          {{ user.email }}
+      <!-- Greeting -->
+      <div class="py-2">
+        <p :class="['text-sm transition-colors', theme.classes.body]">
+          Good {{ timeOfDay }},
         </p>
       </div>
 
-      <div class="flex justify-between items-end text-xs text-stone-500 font-mono pt-2">
+      <!-- User Name -->
+      <div :class="['py-4 border-b transition-colors', theme.classes.border]">
+        <h3 :class="['text-2xl transition-colors', theme.classes.header]">
+          {{ user.displayName || 'Reader' }}
+        </h3>
+
+      </div>
+
+      <!-- Quote -->
+      <div class="py-2 flex justify-center">
+        <div class="max-w-xs">
+           <p :class="['text-sm transition-colors', theme.classes.quote]">
+            "{{ dailyQuote }}"
+          </p>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div :class="['flex justify-between items-end text-xs pt-2 transition-colors', theme.classes.body]">
         <div class="text-left">
-          <p class="uppercase tracking-widest text-[10px] text-stone-400 mb-1">Issued</p>
+          <p :class="['uppercase tracking-widest text-[10px] mb-1 opacity-70']">Issued</p>
           <p>{{ formattedDate }}</p>
         </div>
         <div class="text-right">
-          <p class="uppercase tracking-widest text-[10px] text-stone-400 mb-1">Card No.</p>
-          <p>{{ user.libraryCardNumber?.toUpperCase() || 'PENDING' }}</p>
+          <p :class="['uppercase tracking-widest text-[10px] mb-1 opacity-70']">Card No.</p>
+          <p :class="theme.classes.header">{{ user.libraryCardNumber?.toUpperCase() || 'PENDING' }}</p>
         </div>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+</style>

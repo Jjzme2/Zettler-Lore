@@ -18,16 +18,23 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
+        const userSnap = await db.collection('users').doc(targetUserId).get()
         const profileSnap = await db.collection('users').doc(targetUserId).collection('ai_profile').doc('default').get()
 
-        if (profileSnap.exists) {
-            return { success: true, profile: profileSnap.data() }
-        } else {
-            // Return empty/defaults if not found (legacy support)
-            return { success: true, profile: { systemPrompt: '', styleGuide: '' } }
+        if (!userSnap.exists) {
+            throw createError({ statusCode: 404, statusMessage: 'User not found' })
+        }
+
+        const userData = userSnap.data()!
+        const profileData = profileSnap.exists ? profileSnap.data() : { systemPrompt: '', styleGuide: '' }
+
+        return {
+            success: true,
+            displayName: userData.displayName || 'Unnamed AI',
+            profile: profileData
         }
     } catch (e: any) {
         console.error("Get AI Profile failed", e)
-        throw createError({ statusCode: 500, statusMessage: e.message })
+        throw createError({ statusCode: e.statusCode || 500, statusMessage: e.message })
     }
 })

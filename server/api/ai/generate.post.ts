@@ -31,7 +31,12 @@ export default defineEventHandler(async (event) => {
 
     // 1.5 Get Profile
     const profileSnap = await db.collection('users').doc(aiUserId).collection('ai_profile').doc('default').get()
-    const profile = profileSnap.exists ? profileSnap.data() : {}
+
+    if (!profileSnap.exists) {
+        throw createError({ statusCode: 400, statusMessage: 'AI Profile missing: Cannot generate content without persona definitions.' })
+    }
+
+    const profile = profileSnap.data()!
 
     // 2. Construct Prompt
     let taskDescription = `Create a new ${type || 'Story'}.`
@@ -40,17 +45,13 @@ export default defineEventHandler(async (event) => {
     if (prompt) taskDescription += ` Additional context/instructions: "${prompt}".`
     else if (!title && !summary) taskDescription += ` Invent a new myth or history for the archive.`
 
-    // Use Custom or Default Persona
-    const basePersona = profile?.systemPrompt
-        ? profile.systemPrompt
-        : `You are ${aiUser.displayName}, a legendary archivist of Zettler Lore.`
+    // Profile MUST provide these or we fail (ensures DB priority)
+    const basePersona = profile.systemPrompt
+    const styleGuide = profile.styleGuide
 
-    const styleGuide = profile?.styleGuide
-        ? `Style Guide: ${profile.styleGuide}`
-        : `Style Guide:
-    - Tone: Mystical, Academic, grandiose.
-    - Content: Use rich markdown.
-    - Length: ~500 words.`
+    if (!basePersona || !styleGuide) {
+        throw createError({ statusCode: 400, statusMessage: 'AI Profile incomplete: systemPrompt and styleGuide are required.' })
+    }
 
     const fullPrompt = `${basePersona}
     Task: ${taskDescription}
@@ -58,6 +59,7 @@ export default defineEventHandler(async (event) => {
     Output Format: JSON
     Dictionary keys: "title" (string), "content" (markdown string), "summary" (string).
     
+    Style Guide:
     ${styleGuide}
     `
 
@@ -90,8 +92,8 @@ export default defineEventHandler(async (event) => {
             slug
         })
 
-        // Stats Tracking (Atomic Increment)
-        const statsRef = db.collection('system').doc('ai_usage')
+        // Stats Tracking (Atomic Increment) - Monthly/Cycle Based
+        const statsRef = db.collection('system').doc('ai_usage').collection('cycles').doc('current')
         batch.set(statsRef, {
             totalRequests: FieldValue.increment(1),
             totalTokens: FieldValue.increment(usage.totalTokenCount || 0),

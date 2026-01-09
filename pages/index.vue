@@ -1,39 +1,21 @@
 <script setup lang="ts">
 const { user } = useAuth()
 
-// Mock data (State)
-// Public-facing shelves only
-const shelves = ref([
-  {
-    category: 'Featured',
-    description: 'Curated works selected by the archivists.',
-    books: [
-      { title: 'The Architects of Memory', author: 'J. Zettler', slug: 'architects-of-memory', publishedDate: '2024' },
-      { title: 'Silence in the Archives', author: 'A. Vance', slug: 'silence-archives', publishedDate: '2023' }
-    ]
-  },
-  {
-    category: 'Public Domain',
-    description: 'Timeless works available to all, regardless of membership.',
-    books: [
-      { title: 'The Scent of Time', author: 'Byung-Chul Han', slug: 'scent-of-time', publishedDate: '2017' },
-      { title: 'Meditations', author: 'Marcus Aurelius', slug: 'meditations', publishedDate: '180 AD' }
-    ]
-  }
-])
+const { data: shelves, pending, error } = await useFetch('/api/library')
 
 const searchQuery = ref('')
 const selectedSort = ref('newest')
 
-// Computed simplified filter for demo
+// Computed simplified filter for real data
 const filteredShelves = computed(() => {
+    if (!shelves.value) return []
     if (!searchQuery.value) return shelves.value
 
     return shelves.value.map(shelf => ({
         ...shelf,
         books: shelf.books.filter(book => 
             book.title.toLowerCase().includes(searchQuery.value.toLowerCase()) || 
-            book.author.toLowerCase().includes(searchQuery.value.toLowerCase())
+            (book.author && book.author.toLowerCase().includes(searchQuery.value.toLowerCase()))
         )
     })).filter(shelf => shelf.books.length > 0)
 })
@@ -85,8 +67,8 @@ const filteredShelves = computed(() => {
     <div class="space-y-4">
       <LibraryShelf 
         v-for="shelf in filteredShelves" 
-        :key="shelf.category" 
-        :category="shelf.category" 
+        :key="shelf.slug" 
+        :category="shelf.title" 
         :description="shelf.description"
       >
         <LibraryBookItem

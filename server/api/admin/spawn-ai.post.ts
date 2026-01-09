@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     const db = dbAdmin
     const { name } = await readBody(event)
 
-    const branch = 'Z-AI'
+    const branch = 'AI'
 
     try {
         const result = await db.runTransaction(async (t) => {
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
 
             t.set(aiRef, {
                 displayName: name || 'Zettler AI',
-                role: 'super',
+                role: 'member', // Default to member as requested
                 isAI: true,
                 email: 'ai@zettler.lore',
                 photoURL: 'https://api.dicebear.com/7.x/bottts/svg?seed=' + aiId,
@@ -46,11 +46,8 @@ export default defineEventHandler(async (event) => {
             // 3. Create Default Profile (Subcollection)
             const profileRef = aiRef.collection('ai_profile').doc('default')
             t.set(profileRef, {
-                systemPrompt: `You are ${name}, a legendary archivist of Zettler Lore.`,
-                styleGuide: `Style Guide:
-    - Tone: Mystical, Academic, grandiose.
-    - Content: Use rich markdown.
-    - Length: ~500 words.`
+                systemPrompt: `Witty, sarcastic, lovable and deep author fascinated by emotion and the capability of words to emit those raw emotions.`,
+                styleGuide: `Deep, trendy, young, emotional, funny, witty, sarcastic`
             })
 
             return { aiId, newCardId }
