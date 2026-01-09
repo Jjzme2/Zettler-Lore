@@ -46,8 +46,20 @@ export default defineEventHandler(async (event) => {
         })
 
         // 3. Map stories to shelves
+        // Optimization: Group stories by shelf first to avoid O(N*M) complexity in the next step.
+        // This reduces complexity to O(N+M).
+        const storiesByShelf: Record<string, typeof allStories> = {}
+        for (const story of allStories) {
+            if (story.shelf) {
+                if (!storiesByShelf[story.shelf]) {
+                    storiesByShelf[story.shelf] = []
+                }
+                storiesByShelf[story.shelf].push(story)
+            }
+        }
+
         const populatedShelves = visibleShelves.map(shelf => {
-            const shelfStories = allStories.filter(story => story.shelf === shelf.id)
+            const shelfStories = storiesByShelf[shelf.id] || []
             return {
                 category: shelf.title,
                 slug: shelf.id,
