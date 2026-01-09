@@ -42,10 +42,18 @@ service cloud.firestore {
       // Super can do anything
       allow write: if isSuper();
       
+            // AI Profile Subcollection
+      match /ai_profile/{pId} {
+        allow read: if isSuper();
+        allow write: if false; // Server-Side Only
+      }
+
       // Notifications Subcollection
       match /notifications/{nId} {
         allow read: if isOwner(userId);
-        allow write: if false; 
+        allow update: if isOwner(userId);
+        allow create: if false; // Only server creates notifications
+        allow delete: if isOwner(userId);
       }
     }
 

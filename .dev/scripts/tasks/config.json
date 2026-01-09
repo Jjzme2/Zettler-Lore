@@ -1,0 +1,16 @@
+{
+  "config": {
+    "rules": [
+      "Hug additional notes from the AI with '<<<Note>>>'.",
+      "Never delete data without confirmation.",
+      "Timestamps must be added to all Tasks for creation and update."
+    ],
+    "includeTimestamp": true,
+    "timestampFormat": "YYYY-MM-DD HH:mm:ss",
+    "defaultCollection": "New Tasks",
+    "defaultPriority": "Normal",
+    "defaultStatus": "To Do",
+    "cliDelimiter": "|",
+    "fileAppendedDelimiter": "\n"
+  }
+}

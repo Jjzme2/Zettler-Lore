@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 403, statusMessage: 'Forbidden' })
     }
 
-    const { aiUserId, prompt, type, shelf, title, summary } = await readBody(event)
+    const { aiUserId, prompt, type, shelf, title, summary, isAnonymous } = await readBody(event)
 
     if (!aiUserId) {
         throw createError({ statusCode: 400, statusMessage: 'Missing parameters' })
@@ -29,6 +29,10 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 400, statusMessage: 'Invalid AI User' })
     }
 
+    // 1.5 Get Profile
+    const profileSnap = await db.collection('users').doc(aiUserId).collection('ai_profile').doc('default').get()
+    const profile = profileSnap.exists ? profileSnap.data() : {}
+
     // 2. Construct Prompt
     let taskDescription = `Create a new ${type || 'Story'}.`
     if (title) taskDescription += ` The title MUST be "${title}".`
@@ -36,16 +40,25 @@ export default defineEventHandler(async (event) => {
     if (prompt) taskDescription += ` Additional context/instructions: "${prompt}".`
     else if (!title && !summary) taskDescription += ` Invent a new myth or history for the archive.`
 
-    const fullPrompt = `You are ${aiUser.displayName}, a legendary archivist of Zettler Lore.
+    // Use Custom or Default Persona
+    const basePersona = profile?.systemPrompt
+        ? profile.systemPrompt
+        : `You are ${aiUser.displayName}, a legendary archivist of Zettler Lore.`
+
+    const styleGuide = profile?.styleGuide
+        ? `Style Guide: ${profile.styleGuide}`
+        : `Style Guide:
+    - Tone: Mystical, Academic, grandiose.
+    - Content: Use rich markdown.
+    - Length: ~500 words.`
+
+    const fullPrompt = `${basePersona}
     Task: ${taskDescription}
     
     Output Format: JSON
     Dictionary keys: "title" (string), "content" (markdown string), "summary" (string).
     
-    Style Guide:
-    - Tone: Mystical, Academic, grandiose.
-    - Content: Use rich markdown.
-    - Length: ~500 words.
+    ${styleGuide}
     `
 
     // 3. Call Gemini
@@ -67,8 +80,8 @@ export default defineEventHandler(async (event) => {
             title: data.title,
             content: data.content,
             summary: data.summary,
-            authorId: aiUserId,
-            author: aiUser.displayName,
+            authorId: aiUserId, // Always track real author ID
+            author: isAnonymous ? 'Anonymous' : aiUser.displayName, // Display name logic
             type: type || 'myth',
             shelf: 'ai', // Enforce AI shelf
             status: 'pending', // Pending Admin Approval
@@ -91,6 +104,7 @@ export default defineEventHandler(async (event) => {
 
     } catch (e: any) {
         console.error("AI Generation failed", e)
-        throw createError({ statusCode: 500, statusMessage: e.message })
+        const msg = e.response?.data?.message || e.message || e.statusMessage || String(e)
+        throw createError({ statusCode: 500, statusMessage: msg })
     }
 })

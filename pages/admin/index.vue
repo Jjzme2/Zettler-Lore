@@ -10,7 +10,7 @@ const loading = ref(false)
 const processingId = ref<string | null>(null)
 
 // Computed for branches dropdown
-const branches = ['COMM', 'STOR', 'FOUND']
+const branches = ['COMM', 'STOR', 'FOUND', 'Z-AI']
 
 const shelves = ref<any[]>([])
 const books = ref<any[]>([])
@@ -228,6 +228,64 @@ const generateType = ref('short_story')
 const generateShelf = ref('community')
 const generateSummary = ref('')
 
+const generateAnonymous = ref(false)
+const generatedBook = ref<any>(null) // Store result
+
+// AI Edit State
+const showEditAI = ref(false)
+const editAIForm = ref({
+    id: '',
+    displayName: '',
+    systemPrompt: '',
+    styleGuide: ''
+})
+
+const openEditAI = async (u: any) => {
+    // 1. Set Basic Info immediately
+    editAIForm.value = {
+        id: u.id,
+        displayName: u.displayName || '',
+        systemPrompt: 'Loading...', 
+        styleGuide: 'Loading...'
+    }
+    showEditAI.value = true
+
+    // 2. Fetch Deep Profile
+    try {
+        const res: any = await $fetch('/api/admin/get-ai-profile', {
+            params: { targetUserId: u.id }
+        })
+        if (res.profile) {
+            editAIForm.value.systemPrompt = res.profile.systemPrompt || ''
+            editAIForm.value.styleGuide = res.profile.styleGuide || ''
+        }
+    } catch (e) {
+        console.error("Failed to fetch detailed profile", e)
+        editAIForm.value.systemPrompt = ''
+        editAIForm.value.styleGuide = ''
+    }
+}
+
+const updateAI = async () => {
+    try {
+        await $fetch('/api/admin/update-ai', {
+            method: 'POST',
+            body: {
+                targetUserId: editAIForm.value.id,
+                displayName: editAIForm.value.displayName,
+                systemPrompt: editAIForm.value.systemPrompt,
+                styleGuide: editAIForm.value.styleGuide
+            }
+        })
+        showEditAI.value = false
+        await fetchUsers()
+        alert('AI Author Updated')
+    } catch (e: any) {
+        console.error(e)
+        alert(`Update failed: ${e.statusMessage}`)
+    }
+}
+
 const statusFilter = ref('all')
 
 const filteredBooks = computed(() => {
@@ -244,13 +302,16 @@ const openGenerator = (aiId: string) => {
     generateType.value = 'short_story'
     generateShelf.value = 'community'
     generateSummary.value = ''
+    generateSummary.value = ''
     generatePrompt.value = ''
+    generateAnonymous.value = false
+    generatedBook.value = null // Reset
     showGenModal.value = true
 }
 
 const runGeneration = async () => {
     loading.value = true
-    showGenModal.value = false // close immediately
+    // showGenModal.value = false // Keep open to show success
     try {
         const res = await $fetch('/api/ai/generate', {
             method: 'POST',
@@ -260,14 +321,15 @@ const runGeneration = async () => {
                 title: generateTitle.value,
                 type: generateType.value,
                 shelf: generateShelf.value,
-                summary: generateSummary.value
+                summary: generateSummary.value,
+                isAnonymous: generateAnonymous.value
             }
         })
-        alert(`Generated: ${res.title}`)
+        generatedBook.value = res // { success: true, slug: '...', title: '...' }
         await fetchUsers() 
     } catch (e: any) {
         console.error(e)
-        alert(`Generation failed: ${e.statusMessage}`)
+        alert(`Generation failed: ${e.statusMessage || e.message}`)
     } finally {
         loading.value = false
     }
@@ -302,7 +364,7 @@ onMounted(() => {
     </div>
 
     <!-- Tabs -->
-    <div class="flex gap-8 border-b border-stone-200 mb-12">
+    <div class="flex gap-12 border-b border-stone-200 mb-12">
       <button 
         @click="activeTab = 'members'"
         :class="['pb-4 text-sm font-medium transition-colors', activeTab === 'members' ? 'text-shelf border-b-2 border-shelf' : 'text-stone-400 hover:text-ink']"
@@ -400,6 +462,9 @@ onMounted(() => {
                         <td class="px-6 py-4 text-right flex justify-end gap-2 items-center">
                              <button v-if="u.isAI && user?.role === 'super'" @click="openGenerator(u.id)" class="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded font-bold hover:bg-indigo-200">
                                 ✨ Generate
+                             </button>
+                             <button v-if="u.isAI && user?.role === 'super'" @click="openEditAI(u)" class="text-xs bg-stone-100 text-stone-600 px-2 py-1 rounded hover:bg-stone-200">
+                                ✎ Edit
                              </button>
                              <button @click="deleteUser(u.id)" class="text-xs text-rust hover:underline">Revoke</button>
                         </td>
@@ -543,57 +608,115 @@ onMounted(() => {
     </div>
 
   </div>
+
+    <!-- Edit AI Modal -->
+    <div v-if="showEditAI" class="fixed inset-0 bg-stone-900/50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-sm shadow-xl p-8 max-w-lg w-full space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="font-serif text-xl text-ink">Edit AI Author</h3>
+            
+            <div>
+                <label class="block text-xs font-bold uppercase text-pencil mb-1">Display Name</label>
+                <input v-model="editAIForm.displayName" type="text" class="w-full border border-stone-200 p-2 text-sm rounded-sm" />
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase text-pencil mb-1">System Prompt / Persona</label>
+                <textarea v-model="editAIForm.systemPrompt" rows="4" placeholder="You are a..." class="w-full border border-stone-200 p-2 text-sm rounded-sm"></textarea>
+                <p class="text-[10px] text-pencil mt-1">Leave empty to use system default.</p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold uppercase text-pencil mb-1">Style Guide</label>
+                <textarea v-model="editAIForm.styleGuide" rows="4" placeholder="- Tone: ..." class="w-full border border-stone-200 p-2 text-sm rounded-sm"></textarea>
+                <p class="text-[10px] text-pencil mt-1">Leave empty to use system default.</p>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4">
+                <button @click="showEditAI = false" class="text-xs font-bold uppercase tracking-widest text-pencil hover:text-ink">Cancel</button>
+                <button @click="updateAI" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 shadow-sm font-medium text-xs uppercase tracking-widest">
+                    Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- AI Generation Modal -->
     <div v-if="showGenModal" class="fixed inset-0 bg-ink/20 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="bg-parchment p-8 rounded shadow-xl w-full max-w-lg border border-stone-200 relative overflow-y-auto max-h-[90vh]">
-             <h2 class="text-xl font-serif mb-4 text-ink">Summon Knowledge</h2>
-             
-             <div class="space-y-4 mb-4">
-                 <!-- Title -->
-                 <div>
-                     <label class="block text-xs font-bold uppercase text-pencil mb-1">Title (Optional)</label>
-                     <input v-model="generateTitle" type="text" placeholder="e.g. The Great Fire" class="w-full border border-stone-200 p-2 text-sm rounded-sm text-ink outline-none focus:border-shelf" />
-                 </div>
-
-                 <div class="grid grid-cols-2 gap-4">
-                     <!-- Type -->
-                     <div>
-                         <label class="block text-xs font-bold uppercase text-pencil mb-1">Category</label>
-                         <select v-model="generateType" class="w-full border border-stone-200 p-2 text-sm rounded-sm text-ink outline-none focus:border-shelf bg-white">
-                             <option value="world_building">World-Building</option>
-                             <option value="short_story">Short Story</option>
-                             <option value="element">Element (Char/Env)</option>
-                             <option value="creative_writing">Creative Writing</option>
-                             <option value="poem">Poem</option>
-                             <option value="micro">Micro-Lore</option>
-                         </select>
-                     </div>
-                     <!-- Shelf -->
-                     <div>
-                         <label class="block text-xs font-bold uppercase text-pencil mb-1">Shelf</label>
-                         <select v-model="generateShelf" class="w-full border border-stone-200 p-2 text-sm rounded-sm text-ink outline-none focus:border-shelf bg-white">
-                             <option value="community">Community</option>
-                             <option v-for="s in shelves" :key="s.id" :value="s.slug">{{ s.title }}</option>
-                         </select>
-                     </div>
-                 </div>
-
-                 <!-- Summary -->
-                 <div>
-                     <label class="block text-xs font-bold uppercase text-pencil mb-1">Summary / Abstract (Optional)</label>
-                     <textarea v-model="generateSummary" rows="2" placeholder="Brief overview..." class="w-full border border-stone-200 p-2 text-sm rounded-sm text-ink outline-none focus:border-shelf"></textarea>
-                 </div>
-
-                 <!-- Context -->
-                 <div>
-                     <label class="block text-xs font-bold uppercase text-pencil mb-1">Additional Context / Prompt</label>
-                     <textarea v-model="generatePrompt" class="w-full h-24 p-2 bg-white border border-stone-200 rounded text-ink placeholder-pencil/50 focus:border-shelf outline-none" placeholder="Describe the tone, specific details, or hidden secrets..."></textarea>
+             <!-- Success State -->
+             <div v-if="generatedBook" class="text-center py-8 space-y-6">
+                 <div class="text-5xl">✨</div>
+                 <h2 class="text-2xl font-serif text-ink">Story Manifested</h2>
+                 <p class="text-ink text-lg font-serif">"{{ generatedBook.title }}"</p>
+                 
+                 <div class="flex flex-col gap-3">
+                     <NuxtLink :to="`/read/${generatedBook.slug}`" target="_blank" class="bg-shelf text-white px-6 py-3 rounded-sm font-bold uppercase tracking-widest hover:bg-shelf/90 mx-auto block w-fit">
+                         Read Now
+                     </NuxtLink>
+                     <button @click="showGenModal = false" class="text-pencil hover:text-ink text-xs uppercase tracking-widest">Close</button>
                  </div>
              </div>
 
-             <div class="flex justify-end gap-3">
-                 <button @click="showGenModal = false" class="text-pencil hover:text-ink">Cancel</button>
-                 <button @click="runGeneration" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 shadow-sm font-medium">Generate</button>
+             <!-- Form State -->
+             <div v-else>
+                 <h2 class="text-xl font-serif mb-4 text-ink">Summon Knowledge</h2>
+                 
+                 <div class="space-y-4 mb-4">
+                     <!-- Title -->
+                     <div>
+                         <label class="block text-xs font-bold uppercase text-pencil mb-1">Title (Optional)</label>
+                         <input v-model="generateTitle" type="text" placeholder="e.g. The Great Fire" class="w-full border border-stone-200 p-2 text-sm rounded-sm text-ink outline-none focus:border-shelf" />
+                     </div>
+    
+                     <div class="grid grid-cols-2 gap-4">
+                         <!-- Type -->
+                         <div>
+                             <label class="block text-xs font-bold uppercase text-pencil mb-1">Category</label>
+                             <select v-model="generateType" class="w-full border border-stone-200 p-2 text-sm rounded-sm text-ink outline-none focus:border-shelf bg-white">
+                                 <option value="world_building">World-Building</option>
+                                 <option value="short_story">Short Story</option>
+                                 <option value="element">Element (Char/Env)</option>
+                                 <option value="creative_writing">Creative Writing</option>
+                                 <option value="poem">Poem</option>
+                                 <option value="micro">Micro-Lore</option>
+                             </select>
+                         </div>
+                         <!-- Shelf -->
+                         <div>
+                             <label class="block text-xs font-bold uppercase text-pencil mb-1">Shelf</label>
+                             <select v-model="generateShelf" class="w-full border border-stone-200 p-2 text-sm rounded-sm text-ink outline-none focus:border-shelf bg-white">
+                                 <option value="community">Community</option>
+                                 <option v-for="s in shelves" :key="s.id" :value="s.slug">{{ s.title }}</option>
+                             </select>
+                         </div>
+                     </div>
+    
+                     <!-- Summary -->
+                     <div>
+                         <label class="block text-xs font-bold uppercase text-pencil mb-1">Summary / Abstract (Optional)</label>
+                         <textarea v-model="generateSummary" rows="2" placeholder="Brief overview..." class="w-full border border-stone-200 p-2 text-sm rounded-sm text-ink outline-none focus:border-shelf"></textarea>
+                     </div>
+                    
+                     <!-- Anonymous Toggle -->
+                     <label class="flex items-center gap-2 cursor-pointer border border-stone-100 p-2 rounded hover:bg-white transition-colors">
+                         <input type="checkbox" v-model="generateAnonymous" class="w-4 h-4 text-shelf border-stone-300 rounded focus:ring-shelf" />
+                         <div>
+                             <span class="block text-sm text-ink font-bold">Publish Anonymously</span>
+                             <span class="block text-xs text-pencil">Author will be listed as 'Anonymous' but linked to this AI internally.</span>
+                         </div>
+                     </label>
+    
+                     <!-- Context -->
+                     <div>
+                         <label class="block text-xs font-bold uppercase text-pencil mb-1">Additional Context / Prompt</label>
+                         <textarea v-model="generatePrompt" class="w-full h-24 p-2 bg-white border border-stone-200 rounded text-ink placeholder-pencil/50 focus:border-shelf outline-none" placeholder="Describe the tone, specific details, or hidden secrets..."></textarea>
+                     </div>
+                 </div>
+    
+                 <div class="flex justify-end gap-3">
+                     <button @click="showGenModal = false" class="text-pencil hover:text-ink">Cancel</button>
+                     <button @click="runGeneration" class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 shadow-sm font-medium">Generate</button>
+                 </div>
              </div>
         </div>
     </div>

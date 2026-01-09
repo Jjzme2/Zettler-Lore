@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
     const { name } = await readBody(event)
 
-    const branch = 'AI'
+    const branch = 'Z-AI'
 
     try {
         const result = await db.runTransaction(async (t) => {
@@ -47,6 +47,16 @@ export default defineEventHandler(async (event) => {
                 libraryCardNumber: newCardId,
                 branch: branch,
                 status: 'approved'
+            })
+
+            // 3. Create Default Profile (Subcollection)
+            const profileRef = aiRef.collection('ai_profile').doc('default')
+            t.set(profileRef, {
+                systemPrompt: `You are ${name}, a legendary archivist of Zettler Lore.`,
+                styleGuide: `Style Guide:
+    - Tone: Mystical, Academic, grandiose.
+    - Content: Use rich markdown.
+    - Length: ~500 words.`
             })
 
             return { aiId, newCardId }

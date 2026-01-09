@@ -7,7 +7,14 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "task": "node .dev/scripts/tasks/utility.js",
+    "task:create": "node .dev/scripts/tasks/utility.js create",
+    "task:add": "node .dev/scripts/tasks/utility.js add",
+    "task:rule": "node .dev/scripts/tasks/utility.js rule",
+    "g:component": "node .dev/scripts/scaffoldUtility.js component",
+    "g:page": "node .dev/scripts/scaffoldUtility.js page",
+    "clean": "node .dev/scripts/scaffoldUtility.js clean"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
