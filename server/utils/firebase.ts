@@ -12,7 +12,15 @@ import { getFirestore } from 'firebase-admin/firestore'
 
 const config = useRuntimeConfig()
 
-let privateKey = config.firebaseAdminPrivateKey
+// Helper to get from runtimeConfig or raw environment
+const getEnv = (key: string, nuxtKey: string) => {
+    return config[nuxtKey] || process.env[key] || process.env[`NUXT_${key}`]
+}
+
+const projectId = getEnv('FIREBASE_ADMIN_PROJECT_ID', 'firebaseAdminProjectId')
+const clientEmail = getEnv('FIREBASE_ADMIN_CLIENT_EMAIL', 'firebaseAdminClientEmail')
+let privateKey = getEnv('FIREBASE_ADMIN_PRIVATE_KEY', 'firebaseAdminPrivateKey')
+
 if (privateKey) {
     // Remove wrapping quotes if accidentally included
     if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
@@ -22,44 +30,35 @@ if (privateKey) {
     privateKey = privateKey.replace(/\\n/g, '\n')
 }
 
-// Debug logging (safe)
-if (privateKey) {
-    console.log(`[Firebase] Private Key loaded. Length: ${privateKey.length}`)
-    console.log(`[Firebase] First 20 chars: ${JSON.stringify(privateKey.slice(0, 20))}`)
-    // Check for common issues
-    if (!privateKey.includes('-----BEGIN PRIVATE KEY-----')) {
-        console.error('[Firebase] Error: Private key is missing standard header')
-    }
+// Validation & Selective Logging
+if (!projectId || !clientEmail || !privateKey) {
+    const missing = []
+    if (!projectId) missing.push('projectId')
+    if (!clientEmail) missing.push('clientEmail')
+    if (!privateKey) missing.push('privateKey')
+
+    console.error(`[Firebase] Missing Configuration: ${missing.join(', ')}. Check environment variables.`)
 } else {
-    console.error('[Firebase] Error: Private key is undefined')
+    console.log(`[Firebase] Configuration loaded for project: ${projectId}`)
+    if (privateKey.includes('-----BEGIN PRIVATE KEY-----')) {
+        console.log(`[Firebase] Private Key validated (Header present). Length: ${privateKey.length}`)
+    } else {
+        console.error('[Firebase] Private Key Error: Missing header standard format.')
+    }
 }
 
 const firebaseAdminConfig = {
-    projectId: config.firebaseAdminProjectId,
-    clientEmail: config.firebaseAdminClientEmail,
-    privateKey: privateKey,
-}
-
-if (!firebaseAdminConfig.projectId || !firebaseAdminConfig.clientEmail || !firebaseAdminConfig.privateKey) {
-    console.error('Missing Firebase Admin configuration. Please check your .env file.')
+    projectId,
+    clientEmail,
+    privateKey,
 }
 
 // Initialize Firebase Admin only once
-/**
- * The initialized Firebase Admin application instance.
- */
 export const adminApp = getApps().length === 0
     ? initializeApp({
         credential: cert(firebaseAdminConfig)
     })
     : getApps()[0]
 
-/**
- * The Firebase Auth Admin service instance.
- */
 export const authAdmin = getAuth(adminApp)
-
-/**
- * The Firebase Firestore Admin service instance.
- */
 export const dbAdmin = getFirestore(adminApp)
