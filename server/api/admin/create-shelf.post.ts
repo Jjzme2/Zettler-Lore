@@ -1,4 +1,6 @@
 import { dbAdmin } from '../../utils/firebase'
+import { requireSuperUser } from '../../utils/auth'
+
 // Simple slug function to avoid external dependency issues
 function createSlug(text: string): string {
     return text
@@ -13,10 +15,10 @@ function createSlug(text: string): string {
 }
 
 export default defineEventHandler(async (event) => {
-    // Admin check temporarily disabled for setup
+    // Admin check enabled
     try {
-        // const user = event.context.user
-        // ...
+        const user = await requireSuperUser(event)
+        console.log('[API] Super User:', user.uid)
 
         const body = await readBody(event)
         console.log('[API] Create Shelf Body:', body)
@@ -65,10 +67,10 @@ export default defineEventHandler(async (event) => {
     } catch (e: any) {
         console.error('[API] Shelf Creation Crash:', e)
         // Return a clean error to the client
+        // Do not leak stack trace
         throw createError({
-            statusCode: 500,
-            statusMessage: `Server Crash: ${e.message}`,
-            data: { stack: e.stack }
+            statusCode: e.statusCode || 500,
+            statusMessage: e.statusMessage || 'Internal Server Error'
         })
     }
 })
