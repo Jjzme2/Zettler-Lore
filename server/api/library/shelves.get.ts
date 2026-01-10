@@ -15,8 +15,13 @@ export default defineEventHandler(async (event) => {
     const db = getFirestore()
 
     try {
-        // 1. Fetch all shelves from Firestore, ordered by their display order
-        const shelvesSnap = await db.collection('shelves').orderBy('order').get()
+        // 1. Fetch shelves and stories in parallel
+        // Optimization: Run independent queries in parallel to reduce total latency.
+        const [shelvesSnap, storiesSnap] = await Promise.all([
+            db.collection('shelves').orderBy('order').get(),
+            db.collection('stories').where('status', '==', 'published').get()
+        ])
+
         const shelves = shelvesSnap.docs.map(doc => {
             const data = doc.data()
             return {
@@ -37,16 +42,25 @@ export default defineEventHandler(async (event) => {
             return true
         })
 
-        // 2. Fetch all published stories
-        // Optimization: In a huge app, we'd query per shelf or use Algolia. 
-        // For now, fetching all published stories is efficient enough for a start-up library.
-        const storiesSnap = await db.collection('stories')
-            .where('status', '==', 'published')
-            .get()
+        // 2. Map stories to shelves
+        // Optimization: Group stories by shelf first to avoid O(N*M) complexity in the next step.
+        // This reduces complexity to O(N+M).
+        // Fusion: Combine mapping and grouping into a single pass over the snapshot to avoid creating an intermediate array.
 
-        const allStories = storiesSnap.docs.map(doc => {
+        type Story = {
+            title: any;
+            author: any;
+            slug: string;
+            publishedDate: any;
+            shelf: any;
+            type: any;
+        }
+
+        const storiesByShelf: Record<string, Story[]> = {}
+
+        for (const doc of storiesSnap.docs) {
             const data = doc.data()
-            return {
+            const story: Story = {
                 title: data.title,
                 author: data.author,
                 slug: doc.id,
@@ -54,13 +68,7 @@ export default defineEventHandler(async (event) => {
                 shelf: data.shelf, // Linkage
                 type: data.type
             }
-        })
 
-        // 3. Map stories to shelves
-        // Optimization: Group stories by shelf first to avoid O(N*M) complexity in the next step.
-        // This reduces complexity to O(N+M).
-        const storiesByShelf: Record<string, typeof allStories> = {}
-        for (const story of allStories) {
             if (story.shelf) {
                 if (!storiesByShelf[story.shelf]) {
                     storiesByShelf[story.shelf] = []
