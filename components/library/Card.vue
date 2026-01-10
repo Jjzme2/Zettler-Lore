@@ -2,6 +2,21 @@
 import { THEME_CLASSIC, type CardTheme } from '~/config/themes'
 import { libraryQuotes } from '~/config/quotes'
 
+/**
+ * Card Component
+ *
+ * Displays a digital library card for a user.
+ * It shows the user's name, membership status, and a dynamic daily quote.
+ *
+ * @prop {object} user - The user object containing profile details.
+ * @prop {string} user.uid - The unique Firebase User ID.
+ * @prop {string} [user.email] - User's email.
+ * @prop {string} [user.displayName] - User's display name.
+ * @prop {string|number} [user.createdAt] - Timestamp of account creation.
+ * @prop {string} [user.memberId] - External membership ID (e.g., Stripe).
+ * @prop {string} [user.libraryCardNumber] - The assigned library card number.
+ * @prop {CardTheme} [theme] - The visual theme for the card (defaults to Classic).
+ */
 const props = withDefaults(defineProps<{
   user: {
     uid: string
@@ -18,6 +33,7 @@ const props = withDefaults(defineProps<{
 
 const now = ref(new Date())
 
+// Update time every minute
 onMounted(() => {
   const timer = setInterval(() => {
     now.value = new Date()
@@ -28,6 +44,7 @@ onMounted(() => {
   })
 })
 
+// Dynamic greeting based on time of day
 const timeOfDay = computed(() => {
   const hour = now.value.getHours()
   if (hour < 5) return 'evening'
@@ -36,6 +53,7 @@ const timeOfDay = computed(() => {
   return 'evening'
 })
 
+// Deterministic quote selection based on the date
 const dailyQuote = computed(() => {
   const dateStr = now.value.toDateString()
   let hash = 0

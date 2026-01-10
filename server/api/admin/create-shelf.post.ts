@@ -1,5 +1,9 @@
 import { dbAdmin } from '../../utils/firebase'
-// Simple slug function to avoid external dependency issues
+
+/**
+ * Helper to create a URL-friendly slug from a string.
+ * e.g. "Science Fiction" -> "science-fiction"
+ */
 function createSlug(text: string): string {
     return text
         .toString()
@@ -12,8 +16,22 @@ function createSlug(text: string): string {
         .replace(/-+$/, '')       // Trim - from end
 }
 
+/**
+ * POST /api/admin/create-shelf
+ *
+ * Creates a new shelf (category) in the library.
+ *
+ * @param {string} title - The display title of the shelf.
+ * @param {string} [description] - Optional description.
+ * @param {boolean} [isPublic] - Whether the shelf is visible to guests. Defaults to true.
+ *
+ * @returns {Promise<{ success: boolean, slug: string }>} Result of the operation.
+ */
 export default defineEventHandler(async (event) => {
-    // Admin check temporarily disabled for setup
+    // FIXME: SECURITY WARNING
+    // Admin check is currently disabled for initial setup/seeding purposes.
+    // MUST be re-enabled before production deployment.
+    // usage: await requireAdminUser(event)
     try {
         // const user = event.context.user
         // ...
@@ -45,7 +63,7 @@ export default defineEventHandler(async (event) => {
             throw createError({ statusCode: 409, statusMessage: 'Shelf exists' })
         }
 
-        // Get max order to append
+        // Get max order to append the new shelf at the end
         const lastSnap = await db.collection('shelves').orderBy('order', 'desc').limit(1).get()
         let order = 0
         if (!lastSnap.empty) {
