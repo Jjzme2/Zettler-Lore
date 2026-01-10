@@ -3,13 +3,20 @@ import { getFirestore } from 'firebase-admin/firestore'
 /**
  * GET /api/library/shelves
  *
- * Fetches the Library structure: Shelves and their stories.
+ * Fetches the complete Library structure: Shelves and their stories.
  *
  * Use Cases:
- * - Public: View all public shelves and stories.
- * - Member: View all shelves (including member-only) and stories.
+ * - Public: View all public shelves and stories (if guest).
+ * - Member: View all shelves (including member-only) and stories (if logged in).
  *
- * This endpoint performs filtering based on the user's authentication state.
+ * Logic:
+ * 1. Fetch all shelves from Firestore.
+ * 2. Filter shelves based on user's authentication state (Public vs Member).
+ * 3. Fetch all 'published' stories.
+ * 4. Efficiently map stories to their corresponding shelves.
+ *
+ * @returns {Promise<{ shelves: Array }>} A promise that resolves to the populated library structure.
+ * @throws {Error} 500 if the database fetch fails.
  */
 export default defineEventHandler(async (event) => {
     const db = getFirestore()
@@ -31,15 +38,15 @@ export default defineEventHandler(async (event) => {
         // 1.5 Filter for guests
         const user = event.context.user
         const visibleShelves = shelves.filter(s => {
-            // If user is logged in, they see all shelves (or maybe logic varies)
-            // Request: "non signed in users can only view public shelves"
+            // If user is logged in, they see all shelves.
+            // If user is a guest, they only see public shelves.
             if (!user) return s.isPublic === true
             return true
         })
 
         // 2. Fetch all published stories
-        // Optimization: In a huge app, we'd query per shelf or use Algolia. 
-        // For now, fetching all published stories is efficient enough for a start-up library.
+        // Optimization: In a huge app, we'd query per shelf or use a search engine (Algolia).
+        // For now, fetching all published stories is efficient enough for this scale.
         const storiesSnap = await db.collection('stories')
             .where('status', '==', 'published')
             .get()
@@ -69,6 +76,7 @@ export default defineEventHandler(async (event) => {
             }
         }
 
+        // 4. Construct the final response structure
         const populatedShelves = visibleShelves.map(shelf => {
             const shelfStories = storiesByShelf[shelf.id] || []
             return {

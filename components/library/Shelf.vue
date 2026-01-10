@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * Shelf Component
+ *
+ * Displays a collection of items (books/stories) within a specific category.
+ * Used on the library landing page.
+ *
+ * @prop {string} category - The title of the shelf/category.
+ * @prop {string} [description] - Optional description of the shelf's contents.
+ * @slot - The content of the shelf (typically a list of BookItem or Card components).
+ */
 defineProps<{
   category: string
   description?: string
