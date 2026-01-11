@@ -1,5 +1,16 @@
 import { dbAdmin } from '../../utils/firebase'
 
+/**
+ * Resets AI usage statistics for the current cycle.
+ *
+ * This endpoint archives the current usage data and resets the counters.
+ * It allows super-users to manually cycle the AI stats if needed.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean, message?: string }>} A success indicator.
+ * @throws {Error} Throws a 403 error if the user is not a super-user.
+ * @throws {Error} Throws a 500 error on failure.
+ */
 export default defineEventHandler(async (event) => {
     const user = event.context.user
 

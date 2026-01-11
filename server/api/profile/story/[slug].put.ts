@@ -1,5 +1,21 @@
 import { dbAdmin } from '../../../utils/firebase'
 
+/**
+ * Updates an existing story.
+ *
+ * This endpoint handles updates to story content and metadata.
+ * Access control is nuanced:
+ * - Owners/Super Admins can edit almost everything (title, content, shelf).
+ * - Admins can only update status (approve/reject) and featured status.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean }>} A success indicator.
+ * @throws {Error} Throws a 401 error if unauthorized.
+ * @throws {Error} Throws a 400 error if slug is missing.
+ * @throws {Error} Throws a 404 error if story is not found.
+ * @throws {Error} Throws a 403 error if permission is denied.
+ * @throws {Error} Throws a 500 error on failure.
+ */
 export default defineEventHandler(async (event) => {
     const user = event.context.user
     if (!user) {

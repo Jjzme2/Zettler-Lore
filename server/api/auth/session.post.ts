@@ -11,6 +11,11 @@ import { APP_CONFIG } from '~/config/app.config'
  * creates a secure, HTTP-only Session Cookie.
  *
  * This cookie is then used for subsequent server-side rendering (SSR) and API requests.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ status: string }>} A status object.
+ * @throws {Error} Throws a 400 error if ID token is missing.
+ * @throws {Error} Throws a 401 error if token verification fails.
  */
 export default defineEventHandler(async (event) => {
     const body = await readBody(event)

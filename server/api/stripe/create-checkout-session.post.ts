@@ -1,6 +1,16 @@
 import { ROLES } from '~/config/roles'
 import { useStripe } from '~/server/utils/stripe'
 
+/**
+ * Creates a Stripe Checkout Session.
+ *
+ * This endpoint initiates the payment flow for a subscription.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ url: string }>} The Stripe Checkout URL.
+ * @throws {Error} Throws a 400 error if priceId is missing.
+ * @throws {Error} Throws a 500 error if Stripe session creation fails.
+ */
 export default defineEventHandler(async (event) => {
     // In a real app, you would verify the user here
     // const user = await getUserFromContext(event)

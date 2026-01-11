@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { collection, query, where, onSnapshot, orderBy, limit, doc, updateDoc } from 'firebase/firestore'
 
+/**
+ * NotificationToast Component
+ *
+ * A global floating toast that appears when a new notification is received.
+ * It listens to the same Firestore stream as the bell but only triggers for recent additions.
+ * It automatically dismisses after a few seconds.
+ */
+
 const { $db } = useNuxtApp()
 const { user } = useAuth()
 const notifications = ref<any[]>([])

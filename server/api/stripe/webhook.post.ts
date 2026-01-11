@@ -1,5 +1,15 @@
 import { useStripe } from '~/server/utils/stripe'
 
+/**
+ * Stripe Webhook Handler.
+ *
+ * This endpoint receives and verifies webhook events from Stripe.
+ * It handles successful payments and subscription updates.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ received: boolean }>} Confirmation of receipt.
+ * @throws {Error} Throws a 400 error if signature is invalid or missing.
+ */
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const stripe = useStripe()

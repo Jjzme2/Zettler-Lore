@@ -9,6 +9,17 @@
 </template>
 
 <script setup lang="ts">
+/**
+ * LoadingOverlay Component
+ *
+ * A modal overlay that blocks interaction while a process is running.
+ * Uses a backdrop blur and displays a title/message to the user.
+ *
+ * Props:
+ * @property {boolean} show - Whether the overlay is visible.
+ * @property {string} [title] - Optional title text.
+ * @property {string} [message] - Optional explanatory message.
+ */
 defineProps<{
   show: boolean
   title?: string

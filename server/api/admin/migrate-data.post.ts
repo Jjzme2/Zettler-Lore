@@ -1,8 +1,18 @@
 import { dbAdmin } from '~/server/utils/firebase'
 import { requireAdminUser } from '~/server/utils/auth'
 
+/**
+ * Backfills library cards for existing users.
+ *
+ * This maintenance endpoint scans for users without library cards and generates one for them.
+ * It is primarily used during system migrations or updates.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean, updated: number, details: string[] }>} A report of the migration actions.
+ * @throws {Error} Throws a 403 error if the user is not an admin.
+ */
 export default defineEventHandler(async (event) => {
-    // Admin check
+    // Admin check logic
     await requireAdminUser(event)
 
     const usersRef = dbAdmin.collection('users')

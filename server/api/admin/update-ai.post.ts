@@ -1,5 +1,16 @@
 import { dbAdmin } from '../../utils/firebase'
 
+/**
+ * Updates an AI persona's profile.
+ *
+ * This endpoint allows super-users to modify the display name, system prompt, and style guide of an AI user.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean }>} A success indicator.
+ * @throws {Error} Throws a 403 error if the caller is not a super-user.
+ * @throws {Error} Throws a 400 error if target user is not an AI.
+ * @throws {Error} Throws a 500 error on failure.
+ */
 export default defineEventHandler(async (event) => {
     const user = event.context.user
 

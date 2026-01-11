@@ -1,6 +1,15 @@
 import { dbAdmin } from '../../utils/firebase'
 import { requireSuperUser } from '../../utils/auth'
 
+/**
+ * Creates a new AI persona (user) in the system.
+ *
+ * This endpoint allows super-users to generate a new AI identity with its own library card and profile.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean, aiId: string, newCardId: string }>} The ID and card number of the new AI.
+ * @throws {Error} Throws a 500 error if the transaction fails.
+ */
 export default defineEventHandler(async (event) => {
     await requireSuperUser(event)
 

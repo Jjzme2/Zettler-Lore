@@ -1,6 +1,17 @@
 import { dbAdmin } from '../../utils/firebase'
 import { createNotification } from '../../utils/notifications'
 
+/**
+ * Updates a user's role.
+ *
+ * This endpoint allows super-users to change the role of another user (e.g., 'member', 'admin', 'super').
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean }>} A success indicator.
+ * @throws {Error} Throws a 403 error if the caller is not a super-user.
+ * @throws {Error} Throws a 400 error for invalid roles.
+ * @throws {Error} Throws a 500 error on failure.
+ */
 export default defineEventHandler(async (event) => {
     const user = event.context.user
 

@@ -1,5 +1,15 @@
 import { dbAdmin } from '../../utils/firebase'
 
+/**
+ * Retrieves the AI profile for a specific user.
+ *
+ * This endpoint allows super-users to view the system prompt and style guide associated with an AI user.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean, displayName: string, profile: any }>} The AI user's display name and profile settings.
+ * @throws {Error} Throws a 403 error if the caller is not a super-user.
+ * @throws {Error} Throws a 404 error if the target user is not found.
+ */
 export default defineEventHandler(async (event) => {
     const user = event.context.user
 

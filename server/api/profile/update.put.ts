@@ -1,5 +1,16 @@
 import { getFirestore } from 'firebase-admin/firestore'
 
+/**
+ * Updates the user's profile information.
+ *
+ * This endpoint allows users to change their display name.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean }>} A success indicator.
+ * @throws {Error} Throws a 401 error if unauthorized.
+ * @throws {Error} Throws a 400 error if display name is invalid.
+ * @throws {Error} Throws a 500 error on failure.
+ */
 export default defineEventHandler(async (event) => {
     const user = event.context.user
     if (!user) {

@@ -15,6 +15,6 @@ export const useStripe = () => {
         throw new Error('Stripe secret key is not configured')
     }
     return new Stripe(config.stripeSecretKey, {
-        apiVersion: '2024-12-18.acacia', // Use a pinned version for stability
+        apiVersion: '2025-12-15.clover', // Corrected to match the latest/expected version
     })
 }

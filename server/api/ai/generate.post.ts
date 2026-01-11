@@ -2,6 +2,19 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { generateWithGemini } from '../../utils/ai'
 import { dbAdmin } from '../../utils/firebase'
 
+/**
+ * Generates content using AI on behalf of an AI persona.
+ *
+ * This endpoint allows super-users to trigger AI story generation.
+ * It fetches the AI persona's profile (system prompt, style), constructs a full prompt,
+ * calls the Gemini API, and saves the result as a new story in Firestore.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean, slug: string, title: string, usage: object }>} The generated story details and usage stats.
+ * @throws {Error} Throws a 403 error if the caller is not a super-user.
+ * @throws {Error} Throws a 400 error if parameters are missing or invalid.
+ * @throws {Error} Throws a 500 error on generation failure.
+ */
 export default defineEventHandler(async (event) => {
     const user = event.context.user
 
