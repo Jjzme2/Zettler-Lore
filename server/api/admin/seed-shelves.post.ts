@@ -1,6 +1,16 @@
 import { getFirestore } from 'firebase-admin/firestore'
 import { requireAdminUser } from '../../utils/auth'
 
+/**
+ * Initializes default library shelves.
+ *
+ * This endpoint seeds the Firestore database with a standard set of shelves (categories).
+ * It updates existing shelves if they match the slug, preserving other data.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean, message: string }>} A success message.
+ * @throws {Error} Throws a 500 error if the batch commit fails.
+ */
 export default defineEventHandler(async (event) => {
     // Admin check logic
     await requireAdminUser(event)

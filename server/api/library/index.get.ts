@@ -1,5 +1,15 @@
 import { dbAdmin } from '../../utils/firebase'
 
+/**
+ * Retrieves the main library view.
+ *
+ * This endpoint aggregates shelves and their contained stories for the library homepage.
+ * It filters content based on visibility (public vs private) and approval status.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<Array<Shelf>>} An array of shelves with populated books.
+ * @throws {Error} Throws a 500 error if the fetch fails.
+ */
 export default defineEventHandler(async (event) => {
     const db = dbAdmin
 

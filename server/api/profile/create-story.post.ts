@@ -1,5 +1,18 @@
 import { getFirestore } from 'firebase-admin/firestore'
 
+/**
+ * Creates a new story or world-building element.
+ *
+ * This endpoint allows authenticated users to submit a new work.
+ * Initially, the work is created as a 'draft' and placed in the 'unapproved' shelf.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean, slug: string }>} The slug of the newly created story.
+ * @throws {Error} Throws a 401 error if unauthorized.
+ * @throws {Error} Throws a 400 error if title is missing.
+ * @throws {Error} Throws a 500 error on failure.
+ */
+
 // Use simple slug function
 function createSlug(text: string): string {
     return text.toString().toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '').replace(/\-\-+/g, '-').replace(/^-+/, '').replace(/-+$/, '')

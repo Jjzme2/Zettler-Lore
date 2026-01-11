@@ -1,4 +1,18 @@
 import { dbAdmin } from '../../utils/firebase'
+
+/**
+ * Creates a new shelf in the library.
+ *
+ * This endpoint allows admins (temporarily open) to create a new category (shelf) for stories.
+ * It automatically generates a URL-friendly slug from the title and ensures uniqueness.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean, slug: string }>} A promise that resolves to the success status and the generated slug.
+ * @throws {Error} Throws a 400 error if title is missing.
+ * @throws {Error} Throws a 409 error if a shelf with the generated slug already exists.
+ * @throws {Error} Throws a 500 error for server-side failures.
+ */
+
 // Simple slug function to avoid external dependency issues
 function createSlug(text: string): string {
     return text

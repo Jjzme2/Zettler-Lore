@@ -1,5 +1,17 @@
 import { dbAdmin } from '../../../utils/firebase'
 
+/**
+ * Retrieves a specific world-building element and its entries.
+ *
+ * This endpoint fetches the details of a lore element (e.g., character, location) and its associated entries (sub-stories, events).
+ * It enforces access control based on publication status and user roles.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ element: object, entries: Array<object> }>} The element details and list of entries.
+ * @throws {Error} Throws a 400 error if slug is missing.
+ * @throws {Error} Throws a 404 error if element is not found.
+ * @throws {Error} Throws a 403 error if the user does not have permission to view the element.
+ */
 export default defineEventHandler(async (event) => {
     const slug = getRouterParam(event, 'slug')
     if (!slug) throw createError({ statusCode: 400, statusMessage: 'Missing slug' })

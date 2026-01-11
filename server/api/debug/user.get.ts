@@ -1,5 +1,16 @@
 import { getFirestore } from 'firebase-admin/firestore'
+import { requireSuperUser } from '../../utils/auth'
 
+/**
+ * Debug: Get User Info.
+ *
+ * Retrieves raw user data and environment info for debugging.
+ * Restricted to super-users.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ sessionUser: any, dbUser: any, env: any }>} Debug information.
+ * @throws {Error} Throws a 403 error if the user is not a super-user.
+ */
 export default defineEventHandler(async (event) => {
     // Security: Require super user access since this exposes env vars
     await requireSuperUser(event)

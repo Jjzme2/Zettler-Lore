@@ -9,6 +9,7 @@ import { dbAdmin } from '~/server/utils/firebase'
  * 1.  The User Context (from the session cookie), providing basic Auth claims (uid, email).
  * 2.  The Firestore `users` collection, providing application-specific profile data (role, status, etc.).
  *
+ * @param {H3Event} event - The H3 event object.
  * @returns {Promise<{ user: User | null }>} The user profile object, or null if not authenticated.
  */
 export default defineEventHandler(async (event) => {

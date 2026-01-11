@@ -1,4 +1,12 @@
 <script setup lang="ts">
+/**
+ * ThemeToggle Component
+ *
+ * A button that cycles through the available visual themes:
+ * Light -> Dark -> Sepia -> Light.
+ * Uses the `useTheme` composable to persist the choice.
+ */
+
 const { theme, setTheme } = useTheme()
 
 const toggle = () => {

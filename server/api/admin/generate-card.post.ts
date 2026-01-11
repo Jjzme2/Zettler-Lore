@@ -1,6 +1,19 @@
 import { dbAdmin } from '~/server/utils/firebase'
 import { Timestamp } from 'firebase-admin/firestore'
 
+/**
+ * Generates a library card for a user.
+ *
+ * This endpoint allows admins to approve a user and assign them a library card number.
+ * It uses a transaction to ensure unique, sequential card IDs based on the branch and year.
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ success: boolean, cardId: string }>} A promise that resolves to the new card ID.
+ * @throws {Error} Throws a 401 error if unauthorized.
+ * @throws {Error} Throws a 403 error if the user is not an admin.
+ * @throws {Error} Throws a 400 error if required fields are missing or the user is already approved.
+ * @throws {Error} Throws a 500 error for transaction failures.
+ */
 export default defineEventHandler(async (event) => {
     // 1. Auth Check
     const user = event.context.user

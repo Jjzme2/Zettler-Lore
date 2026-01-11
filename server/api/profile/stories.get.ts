@@ -1,5 +1,14 @@
 import { getFirestore } from 'firebase-admin/firestore'
 
+/**
+ * Retrieves all stories authored by the current user.
+ *
+ * This endpoint allows users to view their own portfolio of works, regardless of status (draft, published, etc.).
+ *
+ * @param {H3Event} event - The H3 event object.
+ * @returns {Promise<{ stories: Array<object> }>} An array of the user's stories.
+ * @throws {Error} Throws a 401 error if unauthorized.
+ */
 export default defineEventHandler(async (event) => {
     // Basic session check (middleware usually handles context, but good to be safe)
     const user = event.context.user

@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import { collection, query, orderBy, limit, onSnapshot, doc, updateDoc } from 'firebase/firestore'
 
+/**
+ * NotificationBell Component
+ *
+ * A header component that displays an icon with an unread count badge.
+ * Clicking toggles a dropdown list of recent user notifications.
+ *
+ * Features:
+ * - Real-time Firestore updates.
+ * - Mark as read functionality.
+ * - Keyboard navigation and click-outside closing.
+ */
+
 const { $db } = useNuxtApp()
 const { user } = useAuth()
 
