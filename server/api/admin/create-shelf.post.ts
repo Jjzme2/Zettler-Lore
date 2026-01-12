@@ -1,4 +1,6 @@
 import { dbAdmin } from '../../utils/firebase'
+import { requireAdminUser } from '../../utils/auth'
+
 // Simple slug function to avoid external dependency issues
 function createSlug(text: string): string {
     return text
@@ -13,11 +15,10 @@ function createSlug(text: string): string {
 }
 
 export default defineEventHandler(async (event) => {
-    // Admin check temporarily disabled for setup
-    try {
-        // const user = event.context.user
-        // ...
+    // 1. Secure this endpoint
+    await requireAdminUser(event)
 
+    try {
         const body = await readBody(event)
         console.log('[API] Create Shelf Body:', body)
 
@@ -66,9 +67,9 @@ export default defineEventHandler(async (event) => {
         console.error('[API] Shelf Creation Crash:', e)
         // Return a clean error to the client
         throw createError({
-            statusCode: 500,
-            statusMessage: `Server Crash: ${e.message}`,
-            data: { stack: e.stack }
+            statusCode: e.statusCode || 500,
+            statusMessage: `Server Error: ${e.message}`, // Avoid 'Crash' in message, but keep message for context if safe-ish. ideally sanitized.
+            // Removed data: { stack: e.stack } to prevent leakage
         })
     }
 })
