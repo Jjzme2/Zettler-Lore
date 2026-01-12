@@ -15,8 +15,13 @@ export default defineEventHandler(async (event) => {
     const db = getFirestore()
 
     try {
-        // 1. Fetch all shelves from Firestore, ordered by their display order
-        const shelvesSnap = await db.collection('shelves').orderBy('order').get()
+        // 1. Fetch all shelves and published stories in parallel
+        // Optimization: Run independent queries concurrently to reduce latency.
+        const [shelvesSnap, storiesSnap] = await Promise.all([
+            db.collection('shelves').orderBy('order').get(),
+            db.collection('stories').where('status', '==', 'published').get()
+        ])
+
         const shelves = shelvesSnap.docs.map(doc => {
             const data = doc.data()
             return {
@@ -37,13 +42,9 @@ export default defineEventHandler(async (event) => {
             return true
         })
 
-        // 2. Fetch all published stories
+        // 2. Process stories
         // Optimization: In a huge app, we'd query per shelf or use Algolia. 
         // For now, fetching all published stories is efficient enough for a start-up library.
-        const storiesSnap = await db.collection('stories')
-            .where('status', '==', 'published')
-            .get()
-
         const allStories = storiesSnap.docs.map(doc => {
             const data = doc.data()
             return {
