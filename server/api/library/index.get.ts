@@ -4,23 +4,24 @@ export default defineEventHandler(async (event) => {
     const db = dbAdmin
 
     try {
-        // 1. Fetch public shelves
-        const shelvesSnap = await db.collection('shelves')
-            .where('isPublic', '==', true)
-            .orderBy('order', 'asc')
-            .get()
+        // 1. Fetch public shelves and approved stories in parallel
+        // Optimization: Run independent queries concurrently
+        const [shelvesSnap, storiesSnap] = await Promise.all([
+            db.collection('shelves')
+                .where('isPublic', '==', true)
+                .orderBy('order', 'asc')
+                .get(),
+            db.collection('stories')
+                .where('status', '==', 'approved') // Only approved stories in the public library
+                .orderBy('createdAt', 'desc')
+                .get()
+        ])
 
         const shelves = shelvesSnap.docs.map(doc => ({
             slug: doc.id,
             ...doc.data(),
             books: [] as any[]
         })) as any[]
-
-        // 2. Fetch published stories
-        const storiesSnap = await db.collection('stories')
-            .where('status', '==', 'approved') // Only approved stories in the public library
-            .orderBy('createdAt', 'desc')
-            .get()
 
         const allStories = storiesSnap.docs.map(doc => ({
             id: doc.id,
