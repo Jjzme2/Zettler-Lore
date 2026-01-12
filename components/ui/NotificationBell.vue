@@ -60,6 +60,8 @@ onUnmounted(() => {
 
 const markRead = async (notification: any) => {
     if (notification.read) return
+    if (!user.value) return
+
     try {
         await updateDoc(doc($db, 'users', user.value.uid, 'notifications', notification.id), {
             read: true
@@ -90,14 +92,14 @@ const toggle = () => {
             class="relative p-2 text-pencil hover:text-ink transition-colors rounded-full hover:bg-stone-100"
             :aria-expanded="isOpen"
             aria-haspopup="true"
-            aria-label="Notifications"
+            :aria-label="unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'"
         >
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
             
             <!-- Badge -->
-            <span v-if="unreadCount > 0" class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rust text-[10px] font-bold text-white ring-2 ring-white">
+            <span aria-hidden="true" v-if="unreadCount > 0" class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rust text-[10px] font-bold text-white ring-2 ring-white">
                 {{ unreadCount > 9 ? '9+' : unreadCount }}
             </span>
         </button>
@@ -105,6 +107,7 @@ const toggle = () => {
         <!-- Dropdown -->
         <div
             v-if="isOpen"
+            role="menu"
             class="absolute right-0 mt-2 w-80 bg-white border border-stone-200 rounded-sm shadow-xl z-50 overflow-hidden text-left origin-top-right"
         >
             <div class="px-4 py-3 border-b border-stone-100 flex justify-between items-center bg-stone-50">
@@ -122,6 +125,7 @@ const toggle = () => {
                     :key="n.id" 
                     @click="markRead(n)"
                     type="button"
+                    role="menuitem"
                     :class="['w-full text-left flex gap-3 p-4 border-b border-stone-100 last:border-0 hover:bg-parchment transition-colors cursor-pointer', !n.read ? 'bg-indigo-50/50' : '']"
                 >
                     <div class="mt-1">
