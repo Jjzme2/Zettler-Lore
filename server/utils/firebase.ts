@@ -13,8 +13,9 @@ import { getFirestore } from 'firebase-admin/firestore'
 const config = useRuntimeConfig()
 
 // Helper to get from runtimeConfig or raw environment
-const getEnv = (key: string, nuxtKey: string) => {
-    return config[nuxtKey] || process.env[key] || process.env[`NUXT_${key}`]
+const getEnv = (key: string, nuxtKey: string): string => {
+    const val = config[nuxtKey] || process.env[key] || process.env[`NUXT_${key}`]
+    return val as string
 }
 
 const projectId = getEnv('FIREBASE_ADMIN_PROJECT_ID', 'firebaseAdminProjectId')

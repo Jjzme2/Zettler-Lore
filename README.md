@@ -42,22 +42,37 @@ A Nuxt 3 application for managing and viewing a creative writing library. It fea
     ```
     The application will be available at `http://localhost:3000`.
 
-## Project Structure
-
-*   `components/`: Vue components, auto-imported.
-*   `composables/`: Reusable logic (hooks), auto-imported.
-*   `layouts/`: Page layouts (e.g., default, authenticated).
-*   `pages/`: Application routes.
-*   `server/`: Server-side logic (API endpoints, utilities, middleware).
-    *   `server/api/`: API route handlers.
-    *   `server/utils/`: Shared server-side utilities (Auth, AI, Firebase).
-    *   `server/middleware/`: Server middleware.
-*   `types/`: TypeScript type definitions.
-*   `public/`: Static assets.
-
 ## Documentation
 
-*   **Firebase & Data Schema:** See [FIREBASE.md](./FIREBASE.md) for detailed information on the Firestore data model and security rules.
+This project contains detailed documentation in specific directories:
+
+*   **[Server Documentation](./server/README.md):** Details on API endpoints, authentication flow, and backend utilities.
+*   **[Component Documentation](./components/README.md):** Guide to the UI component library and structure.
+*   **[Firebase & Data Model](./FIREBASE.md):** Comprehensive guide to the Firestore data schema and security rules.
+
+## Project Structure
+
+The project follows a standard Nuxt 3 structure with some custom organization:
+
+*   `components/`: Vue components, organized by domain:
+    *   `ui/`: Reusable UI primitives (Buttons, Inputs, Modals).
+    *   `library/`: Domain-specific components for the Library feature.
+    *   `element/`: Components for rendering Story/Lore elements.
+*   `composables/`: Auto-imported Vue composables (hooks).
+*   `layouts/`: Page layouts (e.g., `default.vue`, `auth.vue`).
+*   `pages/`: File-based routing.
+*   `server/`: The backend API and server-side logic.
+    *   `api/`: REST API endpoints defined as event handlers.
+    *   `middleware/`: Server-side middleware (e.g., User Context).
+    *   `utils/`: Shared helper functions (Firebase Admin, Auth, AI).
+*   `types/`: TypeScript interfaces and types.
+*   `public/`: Static assets.
+
+## Testing
+
+Currently, the project relies on static analysis and manual verification.
+
+*   **Type Checking:** Run `npx nuxi typecheck` to verify TypeScript types.
 
 ## Development
 
