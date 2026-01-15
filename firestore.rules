@@ -83,8 +83,9 @@ service cloud.firestore {
 
         // Subcollections (Entries)
         match /entries/{entryId} {
-            allow read: if true;
-            allow write: if isAuthenticated();
+            // Security: Entries are managed via Server API (add-entry.post.ts)
+            // Deny Client SDK access to prevent tampering or IDOR.
+            allow read, write: if false;
         }
     }
 
